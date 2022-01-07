@@ -35,7 +35,8 @@ def mao_heat_on():
     mao_heat_apc.turnOnOutlet(mao_heat_apc_outlet)
     heat_enabled = True
     if mao_heat_icon:
-        mao_heat_icon.notify("Heaters On")
+        mao_heat_icon.notify("Heaters On: dp:%s, pm:%s" % (mao_dew_point, mao_mirror_temp))
+        print("[%s] Heaters On: dp:%s, pm:%s" % (time.asctime(), mao_dew_point, mao_mirror_temp), flush=True)
 
 def mao_heat_off():
     '''Disables the Heaters'''
@@ -43,7 +44,8 @@ def mao_heat_off():
     mao_heat_apc.turnOffOutlet(mao_heat_apc_outlet)
     heat_enabled = False
     if mao_heat_icon:
-        mao_heat_icon.notify("Heaters Off")
+        mao_heat_icon.notify("Heaters Off: dp:%s, pm:%s" % (mao_dew_point, mao_mirror_temp))
+        print("[%s] Heaters Off: dp:%s, pm:%s" % (time.asctime(), mao_dew_point, mao_mirror_temp), flush=True)
 
 def mao_heat_hyst(mirror_temp, dew_point):
     '''Compares Primary Mirror Temperature to Dew Point with hysteresis'''
@@ -58,13 +60,16 @@ runloop_queue = queue.Queue(4)
 
 def mao_heat_timer():
     '''Started to run a periodic timer for the runloop'''
-    time.sleep(10) #First one is short
+    time.sleep(15) #First one is short
     while True:
         runloop_queue.put(HeatStates.HEAT_TIMER)
         time.sleep(60*10) #10 minutes
 
 mao_mirror_temp = "n/a"
 mao_dew_point = "n/a"
+
+def pretty_print_temp(t):
+    return "%.1f\N{DEGREE SIGN}C" % t
 
 def mao_heat_runloop():
     '''Started in a separate thread to handle events and timer'''
@@ -77,12 +82,13 @@ def mao_heat_runloop():
         mirror_temp = mirror.getPrimaryTemp()
         weather = boltwood.Boltwood() #create object to read dew point
         dew_point = weather.getDewPoint()
+        mao_mirror_temp = pretty_print_temp(mirror_temp)
+        mao_dew_point = pretty_print_temp(dew_point)
         stop = False
         local_state = HeatStates.HEAT_ALWAYS_OFF
         threading.Thread(target=mao_heat_timer, daemon=True).start() #runloop timer
         while not stop:
-            mao_mirror_temp = "%.1f\N{DEGREE SIGN}C" % mirror_temp
-            mao_dew_point = "%.1f\N{DEGREE SIGN}C" % dew_point
+            print("[%s] Temperature Update: dp:%s, pm:%s" % (time.asctime(), mao_dew_point, mao_mirror_temp), flush=True)
             mao_heat_icon.update_menu()
             event = runloop_queue.get()
             print("event: %s" % event, flush=True)
@@ -98,6 +104,8 @@ def mao_heat_runloop():
             elif event == HeatStates.HEAT_TIMER:
                 dew_point = weather.getDewPoint() #update interesting values
                 mirror_temp = mirror.getPrimaryTemp()
+                mao_mirror_temp = pretty_print_temp(mirror_temp)
+                mao_dew_point = pretty_print_temp(dew_point)
                 if local_state == HeatStates.HEAT_AUTO:
                     mao_heat_hyst(mirror_temp, dew_point)
             elif event == HeatStates.HEAT_QUIT:
