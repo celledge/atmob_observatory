@@ -75,12 +75,12 @@ def mao_heat_runloop():
     '''Started in a separate thread to handle events and timer'''
     try:
         import pwi3_temp
-        import boltwood
+        import observing_conditions_hub
         global mao_mirror_temp
         global mao_dew_point
         mirror = pwi3_temp.PWI3() #create object to read mirror temp
         mirror_temp = mirror.getPrimaryTemp()
-        weather = boltwood.Boltwood() #create object to read dew point
+        weather = observing_conditions_hub.Conditions() #create object to read dew point
         dew_point = weather.getDewPoint()
         mao_mirror_temp = pretty_print_temp(mirror_temp)
         mao_dew_point = pretty_print_temp(dew_point)
