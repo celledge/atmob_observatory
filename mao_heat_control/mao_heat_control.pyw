@@ -85,7 +85,7 @@ def mao_heat_runloop():
         mao_mirror_temp = pretty_print_temp(mirror_temp)
         mao_dew_point = pretty_print_temp(dew_point)
         stop = False
-        local_state = HeatStates.HEAT_ALWAYS_OFF
+        local_state = heat_selected
         threading.Thread(target=mao_heat_timer, daemon=True).start() #runloop timer
         while not stop:
             print("[%s] Temperature Update: dp:%s, pm:%s" % (time.asctime(), mao_dew_point, mao_mirror_temp), flush=True)
@@ -134,7 +134,7 @@ def create_image():
         fill="green")
     return image
 
-heat_selected = HeatStates.HEAT_ALWAYS_OFF
+heat_selected = HeatStates.HEAT_AUTO
 def select_heat_off(icon, item):
     global heat_selected
     if heat_selected != HeatStates.HEAT_ALWAYS_OFF:
