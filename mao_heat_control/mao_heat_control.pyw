@@ -1,4 +1,4 @@
-#!python
+#!python3
 ''' MAO Heat Controller
 
 MAO heat controller is an app that will watch temperature of the primary mirror
@@ -74,11 +74,11 @@ def pretty_print_temp(t):
 def mao_heat_runloop():
     '''Started in a separate thread to handle events and timer'''
     try:
-        import pwi3_temp
+        import pwi4_temp
         import observing_conditions_hub
         global mao_mirror_temp
         global mao_dew_point
-        mirror = pwi3_temp.PWI3() #create object to read mirror temp
+        mirror = pwi4_temp.PWI4() #create object to read mirror temp
         mirror_temp = mirror.getPrimaryTemp()
         weather = observing_conditions_hub.Conditions() #create object to read dew point
         dew_point = weather.getDewPoint()
